@@ -1,4 +1,3 @@
-import json
 import pickle
 import socket
 
@@ -115,14 +114,16 @@ print("Got connection from", addr)
 Q = np.zeros((8, 8))
 Q[0:3, 0:3] = 1
 data = b""
+total_bytes_received = 0
 while True:
     packet = client_socket.recv(4096)
     if not packet:
         break
+    total_bytes_received += len(data)
     data += packet
 data_arr = pickle.loads(data)
 client_socket.close()
-print(f"Data size {np.array(data_arr).nbytes}")
+print(f"Data size {total_bytes_received}")
 
 B = []
 for block in data_arr:
@@ -137,9 +138,9 @@ final_image = combine_image_blocks(B)
 image_path = "/home/supreeths/Downloads/SampleImage.tif"
 image = cv2.imread(image_path)
 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-cv2.imshow("original", image)
+cv2.imshow("Original image", image)
 cv2.waitKey(0)
 final_image = final_image.astype(np.uint8)
-cv2.imshow("test", final_image)
+cv2.imshow("Received image", final_image)
 cv2.waitKey(0)
 print(f"MSE: {MSE(image, final_image)}")

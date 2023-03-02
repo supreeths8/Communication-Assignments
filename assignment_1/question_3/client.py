@@ -4,7 +4,7 @@ import sys
 
 import cv2
 import numpy as np
-from scipy.fftpack import dct, idct
+from scipy.fftpack import dct
 
 # create socket object
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,90 +22,7 @@ image_path = "/home/supreeths/Downloads/SampleImage.tif"
 image = cv2.imread(image_path)
 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 Q = np.zeros((8, 8))
-Q[0:3, 0:3] = 1
-
-
-
-def combine_image_blocks(block_list):
-    hstacks = block_list[0]
-    hstack_list = []
-    count = 0
-    for c, _block in enumerate(block_list):
-        if c == 0:
-            continue
-        if count != 31:
-            hstacks = np.hstack((hstacks, _block))
-            count += 1
-        else:
-            count = 0
-            # print(c)
-            hstack_list.append(hstacks)
-            hstacks = block_list[c+1]
-        if c == 1023:
-            hstack_list.append(hstacks)
-
-    vstack = hstack_list[0]
-    for i, h in enumerate(hstack_list):
-        if i == 0:
-            continue
-        vstack = np.vstack((vstack, h))
-    return vstack
-
-
-def run_length_decode(_encoded_data):
-    """Decodes run length encoded data and returns the original list of integers."""
-    _decoded_data = []
-    for _value, count in _encoded_data:
-        _decoded_data += [_value] * count
-    return np.array(_decoded_data).reshape(64,)
-
-
-def undo_zigzag_scan(matrix):
-    UP, DOWN, LEFT, RIGHT = range(4)
-    row, col, direction = 0, 0, RIGHT
-    un_zigzag_matrix = np.zeros((8,8))
-    matrix = matrix.reshape(64,)
-    un_zigzag_matrix[row][col] = matrix[0]
-    for c, value in enumerate(matrix):
-        if c == 0:
-            continue
-        if direction == UP:
-            if row == 0:
-                col += 1
-                direction = LEFT
-            elif col == 7:
-                row += 1
-                direction = LEFT
-            else:
-                row -= 1
-                col += 1
-        elif direction == DOWN:
-            if row == 7:
-                direction = RIGHT
-                col += 1
-            else:
-                row += 1
-                direction = UP
-        elif direction == LEFT:
-            if col == 0 and row != 7:
-                row += 1
-                direction = UP
-            elif row == 7:
-                col += 1
-                direction = UP
-            else:
-                row += 1
-                col -= 1
-                direction = LEFT
-        elif direction == RIGHT:
-            if col == 7:
-                direction = DOWN
-                row += 1
-            else:
-                col += 1
-                direction = LEFT
-        un_zigzag_matrix[row][col] = value
-    return un_zigzag_matrix
+Q[0:8, 0:8] = 1
 
 
 def make_image_blocks(img, block_size=8):
@@ -188,26 +105,16 @@ def zigzag_scan(matrix):
 
 rl_encoded_list = []
 blocks = make_image_blocks(image, block_size=8)
-print(f"Data size {image.nbytes}")
 s = 0
 for i, block in enumerate(blocks):
     BF = dct(block, norm="ortho")
     BQF = BF * Q
     zig_zag_result = zigzag_scan(BQF)
     rl_encoded = run_length_encode(zig_zag_result)
-    # decoded_data = run_length_decode(rl_encoded)
-    # _BQF = undo_zigzag_scan(decoded_data)
-    # inv = idct(_BQF, norm="ortho")
-    # assert np.allclose(BQF, _BQF, atol=1e-04)
-    # print(f"Encoding {i} : {sys.getsizeof(rl_encoded)} bytes")
     s += sys.getsizeof(rl_encoded)
     rl_encoded_list.append(rl_encoded)
 
-print(f"Encoded size: {s}")
-print(f"Data size {np.array(rl_encoded_list).nbytes}")
 t = pickle.dumps(rl_encoded_list)
-# print(f"Image: {sys.getsizeof(image)} bytes")
-# print(f"Compressed Image: {sys.getsizeof(rl_encoded_list)} bytes")
 client_socket.send(t)
 
 # close the connection
