@@ -51,6 +51,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
+./assignment_1/question_3/output
 # Translations
 *.mo
 *.pot
