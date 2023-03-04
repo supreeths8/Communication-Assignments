@@ -1,11 +1,14 @@
+import os
+
 import cv2
 import numpy as np
 import pickle
 import socket
 
 from utils import zigzag_scan, run_length_encode, load_grayscale_image, make_image_blocks, make_quantization_matrix, get_logger
+os.chdir(os.path.dirname(__file__))
 
-logger = get_logger(__name__)
+logger = get_logger("CLIENT")
 L = 3
 
 
@@ -25,7 +28,7 @@ class Client:
         self.socket.close()
 
 
-image_path = "/home/supreeths/Downloads/SampleImage.tif"
+image_path = "SampleImage.tif"
 image = load_grayscale_image(image_path)
 
 blocks = make_image_blocks(image, block_size=8)

@@ -7,8 +7,8 @@ import numpy as np
 from utils import combine_image_blocks, undo_zigzag_scan, run_length_decode, MSE, load_grayscale_image, get_logger
 
 os.chdir(os.path.dirname(__file__))
-logger = get_logger(__name__)
-image_path = "/home/supreeths/Downloads/SampleImage.tif"
+logger = get_logger("SERVER")
+image_path = "SampleImage.tif"
 image = load_grayscale_image(image_path)
 
 
@@ -53,5 +53,5 @@ B = np.array(B)
 final_image = combine_image_blocks(B)
 final_image = final_image.astype(np.uint8)
 logger.info(f"MSE: {MSE(image, final_image)}")
-cv2.imwrite(f"./output/count-{MSE(image, final_image)}.jpg", final_image)
+cv2.imwrite(f"./output/{MSE(image, final_image)}.jpg", final_image)
 sender.close()
