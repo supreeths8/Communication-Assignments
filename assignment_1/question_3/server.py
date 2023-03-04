@@ -51,7 +51,7 @@ def main():
     final_image = final_image.astype(np.uint8)
     logger.info(f"MSE: {MSE(image, final_image)}")
     mse = MSE(image, final_image)
-    cv2.imwrite(f"./output/{mse}.jpg", final_image)
+    cv2.imwrite(f"./output/MSE-{mse}_bytes-{total_bytes_received}.jpg", final_image)
     sender.close()
     receiver.close()
     logger.info("Connection closed")
