@@ -1,3 +1,4 @@
+'''p'''
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -40,7 +41,7 @@ def plot_housing_pie_chart():
 
 
 def plot_personal_loan():
-    _graph = px.pie(df.loan.value_counts().reset_index().rename(columns={'index':'Loan','loan':'Count'}), names='Loan', values='Count',hole=0.5,template='plotly_white',color_discrete_sequence=['HotPink','LightSeaGreen','SlateBlue'], title='Housing Loan')
+    _graph = px.pie(df.loan.value_counts().reset_index().rename(columns={'index':'Loan','loan':'Count'}), names='Loan', values='Count',hole=0.5,template='plotly_white',color_discrete_sequence=['HotPink','LightSeaGreen','SlateBlue'], title='Personal Loan')
     _graph.update_layout(title_x=0.5, legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1))
     return _graph
 
@@ -139,37 +140,43 @@ def plot_main_term_deposit():
 
 
 app.layout = html.Div(children=[
-    html.H2(children="In the dataset we have both categorical and numerical columns. Let's look at the values of categorical columns first."),
+    html.H2(children="Objective: Optimize marketing resources by pinpointing potential customers interested in subscribing to term deposits, to focuse marketing efforts on target audience"),
+    html.P("A term deposit is a fixed-term investment that includes the deposit of money into an account at a financial institution. "),
+
+    html.H3(children="Overview of Dataset"),
     dcc.Dropdown(id="cat-select", options=[{"label":k, "value":k}  for k in cat_columns], value=cat_columns[0]),
     dcc.Graph('cat-graph'),
 
-    html.H2(children="We can see that numerical columns have outliers (especially ‘pdays’, ‘campaign’ and ‘previous’ columns). Possibly there are incorrect values (noisy data), so we should look closer at the data and decide how do we manage the noise. "),
-    dcc.Dropdown(id="cat-hist-select", options=[{"label": k, "value": k} for k in num_columns], value=num_columns[0]),
-    dcc.Graph('cat-hist'),
-
-    html.H2(children="Most of the clients in the bank are Married - 56.9% and Single - 31.5%"),
+    html.H3(children="Clients description based on Maritial Status"),
+    html.P(children="Most of the clients in the bank are Married - 56.9% and Single - 31.5%"),
     dcc.Graph(id='marriage-pie-chart', figure=plot_marriage_pie_chart()),
 
     html.Div([
-        html.H2(children="Percentage of customers with loan accounts"),
+        html.H3(children="Credit and Loan analysis"),
+        html.P(children="98.3% customers in the bank doesn't have Credit in Default"),
         dcc.Graph(id='default-pie-chart', figure=plot_default_pie_chart(), style={'display': 'inline-block'}),
+        html.P(children="On Comparing between housing loan and personal loan , most of the people subscribed for housing loan - 47.3%"),
         dcc.Graph(id='housing-pie-chart', figure=plot_housing_pie_chart(), style={'display': 'inline-block'}),
         dcc.Graph(id='loan-pie-chart', figure=plot_personal_loan(), style={'display': 'inline-block'})
     ]),
 
-    dcc.Graph(id='contact-pie-chart', figure=plot_method_of_contact()),
-    dcc.Graph(id='last-contacy-bar-chart', figure=plot_last_contact()),
-    dcc.Graph(id='avg-balance-bar-chart', figure=plot_avg_balance_based_on_job()),
-    dcc.Graph(id='dist-age-job-box-chart', figure=plot_dist_age_based_on_job()),
-    dcc.Graph(id='age-loan-line-chart', figure=plot_line_age_loan()),
-    dcc.Graph(id='deposits-on-contact-bar-chart', figure=plot_deposits_on_contact()),
+    html.Div([
+        html.H2(children= "Based on Job type we want to analyse average balance and distribution of age"),
+        dcc.Graph(id='avg-balance-bar-chart', figure=plot_avg_balance_based_on_job()),
+        dcc.Graph(id='dist-age-job-box-chart', figure=plot_dist_age_based_on_job()),
+    ]),
 
+    dcc.Graph(id='age-loan-line-chart', figure=plot_line_age_loan()),
+    html.P("From the Analysis, even the mid-age group clients are subscribed more for the personal loans, there are more number of clients who are not subscribing for the personal loans in this age group whereas old age people are not interested in personal loan"),
+    dcc.Graph(id='deposits-on-contact-bar-chart', figure=plot_deposits_on_contact()),
+    html.P("Most of the clients in the bank are contacted in the months of May, Jun, Jul and in Aug last year. More Clients subscribed to term deposits in this months only whereas very few of the clients are contacted in the months of Sep, Mar and in Dec. Even less contacts performed in these months, more number of clients subscribed to term deposits in these months. It is better to Contact clients more in this months."),
     dcc.Dropdown(id="campaign-effect-select", options=[{"label": k, "value": k} for k in ['Current Campaign', 'Previous Campaign']], value='Previous Campaign'),
     dcc.Graph(id='campaign-effect'),
-
-    dcc.Graph(id='deposit-on-contact', figure=plot_deposit_on_contact()),
+    html.P("With the increase in previous contacts performed for the clients before this campaign there is more chance for the client to unsubscribe the term deposit"),
     dcc.Graph(id='main-result', figure=plot_main()),
-    dcc.Graph(id='main-term-deposit', figure=plot_main_term_deposit())
+    html.P("Conclusion of analysis that how many clients subscribed Term Deposit based on Job type"),
+    dcc.Graph(id='main-term-deposit', figure=plot_main_term_deposit()),
+    html.P("From the Outcome of previous Campaign, if the outcome is Success, then there is a high chance to the client will subscribe to the term deposit. out of all success outcomes 91.3% of clients subscribes and 8.7% are not subscribed to the term deposits")
 ],
     style={"width": "50%"}
 )
@@ -187,11 +194,6 @@ def plot_cat(select_cat):
                  })
     return _graph
 
-
-@app.callback(
-    Output(component_id='cat-hist', component_property='figure'),
-    Input(component_id='cat-hist-select', component_property='value')
-)
 def plot_hist(selected_cat):
     _df = df[selected_cat]
     nbins = None
