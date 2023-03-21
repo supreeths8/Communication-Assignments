@@ -1,18 +1,10 @@
-'''p'''
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
 import plotly.express as px
-
-from dash import Output, Input
-
-
-import numpy as np
 import pandas as pd
 
-import os
-print(os.listdir("data/"))
-
+from dash import Output, Input
+from dash import dcc
+from dash import html
 
 df = pd.read_csv('data/bank.csv')
 app = dash.Dash()
@@ -22,6 +14,7 @@ cat_columns = ['job', 'marital', 'education', 'default', 'housing', 'loan', 'con
 num_columns = ['balance', 'day','duration', 'campaign', 'previous']
 
 
+# Plotting functions that return a plotly figure object to the dashboard
 def plot_marriage_pie_chart():
     _graph = px.pie(df.marital.value_counts().reset_index().rename(columns={'index':'Marital-Status','marital':'Count'}),names='Marital-Status',values='Count',hole=0.5,template='plotly_white',color_discrete_sequence=['HotPink','LightSeaGreen','SlateBlue'])
     _graph.update_layout(title_x=0.5, legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1))
@@ -103,19 +96,6 @@ def plot_deposits_on_contact():
     return _graph
 
 
-def plot_deposit_on_contact():
-    a = df.groupby(['month', 'deposit'], as_index=False)['age'].count().rename(columns={'age': 'Count'})
-    a['percent'] = round(a['Count'] * 100 / a.groupby('month')['Count'].transform('sum'), 1)
-    a['percent'] = a['percent'].apply(lambda x: '{}%'.format(x))
-    _graph = px.bar(a, x='month', y='Count', text='percent', color='deposit', barmode='group', template='simple_white',
-                 color_discrete_sequence=['MediumPurple', 'YellowGreen'])
-    _graph.update_layout(title_x=0.5, template='simple_white', showlegend=True, legend_title_text="Deposit",
-                      title_text='<b style="color:black; font-size:100%;">Deposits based on last Contact month',
-                      font_family="Times New Roman", title_font_family="Times New Roman")
-    _graph.update_traces(marker=dict(line=dict(color='#000000', width=1)), textposition="outside")
-    return _graph
-
-
 def plot_main():
     _graph = px.treemap(df.groupby(['job', 'deposit'], as_index=False)['age'].count().rename(columns={'age': 'Count'}),
                      path=['job', 'deposit', 'Count'], template='simple_white')
@@ -139,6 +119,7 @@ def plot_main_term_deposit():
     return _graph
 
 
+# HTML UI design and interactions
 app.layout = html.Div(children=[
     html.H2(children="Objective: Optimize marketing resources by pinpointing potential customers interested in subscribing to term deposits, to focuse marketing efforts on target audience"),
     html.P("A term deposit is a fixed-term investment that includes the deposit of money into an account at a financial institution. "),
@@ -182,6 +163,7 @@ app.layout = html.Div(children=[
 )
 
 
+# Plotting functions with interactions
 @app.callback(
     Output(component_id='cat-graph', component_property='figure'),
     Input(component_id='cat-select', component_property='value')
@@ -192,14 +174,6 @@ def plot_cat(select_cat):
                      select_cat: "No. of responses",
                      "index": f"{select_cat} status" if select_cat != "month" else "month"
                  })
-    return _graph
-
-def plot_hist(selected_cat):
-    _df = df[selected_cat]
-    nbins = None
-    if selected_cat == "balance":
-        nbins = 5
-    _graph = px.histogram(df, x=selected_cat, nbins=nbins)
     return _graph
 
 
@@ -223,5 +197,6 @@ def plot_campaign_effects(selected_value):
     return _graph
 
 
+# Main function to serve the UI
 if __name__ == "__main__":
     app.run(debug=True, port=8049, dev_tools_hot_reload=True)
